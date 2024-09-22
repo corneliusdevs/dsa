@@ -60,8 +60,10 @@ class BinarySearchTreeMethods:
         return self.print_highest_value_in_tree(node.rightNode)
 
     def insertNode(self, rootNode:BinaryTreeNode, nodeToInsert:BinaryTreeNode):
-        # if value is already in the tree, return
-        if rootNode.data == nodeToInsert.data:
+        if(rootNode is None or nodeToInsert is None):
+            return
+        elif rootNode.data == nodeToInsert.data:
+            # if the node is already in the tree return
             return 
 
         if nodeToInsert.data < rootNode.data:
@@ -78,7 +80,121 @@ class BinarySearchTreeMethods:
             return self.insertNode(rootNode.rightNode, nodeToInsert)
         
         return
+    
+    def getNodeToDelete(self, parentNode:BinaryTreeNode, nodeToDelete: BinaryTreeNode, nodeBeforeNodeToBeDeleted:BinaryTreeNode | None) -> tuple[BinaryTreeNode | None, BinaryTreeNode | None]:
+        """The Method returns a tuple in the format (nodeToDelete, nodeBeforeTheNodeToBeDeleted)"""
+        if parentNode.data == nodeToDelete.data:
+            return [nodeToDelete, nodeBeforeNodeToBeDeleted]
+        
+        if nodeToDelete.data < parentNode.data:
+            # if there is no left node, it means the nodeToDelete is not in the tree
+            if parentNode.leftNode is None:
+                # return an empty tuple
+                return ()
             
+            return self.getNodeToDelete(parentNode.leftNode, nodeToDelete, parentNode)
+        
+        elif nodeToDelete.data > parentNode.data:
+            # if there is no right node, it means we have reached the end of the tree and the nodeToDelete is not in the tree
+            if parentNode.rightNode is None:
+                # return an empty tuple
+                return ()
+            
+            return self.getNodeToDelete(parentNode.rightNode, nodeToDelete, parentNode)
+        
+        return ()
+    
+    def  isInRightSubTree(self, parentNode:BinaryTreeNode, node):
+          if(parentNode == None):
+              return None
+          return parentNode.rightNode == node
+        
+    
+    def deleteNode(self, rootNode:BinaryTreeNode, nodeTodelete:BinaryTreeNode) -> BinaryTreeNode:
+        """This function deletes a node from a binary tree and returns the root node"""
+
+        if(nodeTodelete is None):
+            return rootNode
+        
+        (_, parentNode) = self.getNodeToDelete(rootNode, nodeTodelete, None)
+
+        leftOfNodeToBeDeleted = nodeTodelete.leftNode
+        rightOfNodeToBeDeleted = nodeTodelete.rightNode
+
+        
+        isInRightSubTreeOfParentNode = self.isInRightSubTree(parentNode, nodeTodelete)
+        isInLeftSubTreeOfParentNode = isInRightSubTreeOfParentNode == False
+
+        # checks if Node to be deleted is a leaf Node
+        nodeTodeleteIsLeafNode = (leftOfNodeToBeDeleted == None) == (rightOfNodeToBeDeleted == None)
+
+        if(parentNode):
+            if(isInLeftSubTreeOfParentNode):
+                if(rightOfNodeToBeDeleted is not None):
+                    newChildOfParent = rightOfNodeToBeDeleted
+                    parentNode.leftNode = newChildOfParent
+                    # insert the left sub tree in a suitable position in the binary tree following the rules of inserting a new node in a binary search tree
+                    self.insertNode(newChildOfParent, leftOfNodeToBeDeleted)
+
+                elif leftOfNodeToBeDeleted is not None:
+                    newChildOfParent = leftOfNodeToBeDeleted
+                    parentNode.leftNode = newChildOfParent
+
+                elif nodeTodeleteIsLeafNode :
+                    # if this runs, it means the nodeToDelete is a leaf node: this means that it does not have a left node or a right node
+
+                    # because we are sure that we are in the left sub tree of the parent node we set the leftNode of the parent Node to be equal to none
+                    parentNode.leftNode = None
+                else:
+                    parentNode.leftNode = None
+
+
+            elif(isInRightSubTreeOfParentNode):
+                if(rightOfNodeToBeDeleted is not None):
+                    newChildOfParent = rightOfNodeToBeDeleted
+                    parentNode.rightNode = newChildOfParent
+                    # insert the left sub tree in a suitable position in the binary tree following the rules of inserting a new node in a binary search tree
+                    self.insertNode(newChildOfParent, leftOfNodeToBeDeleted)
+
+                elif leftOfNodeToBeDeleted is not None:
+                    newChildOfParent = leftOfNodeToBeDeleted
+                    parentNode.rightNode = newChildOfParent
+
+                elif nodeTodeleteIsLeafNode :
+                    # if this runs, it means the nodeToDelete is a leaf node: this means that it does not have a left node or a right node
+
+                    # because we are sure that we are in the left sub tree of the parent node we set the leftNode of the parent Node to be equal to none
+                    parentNode.rightNode = None
+                else:
+                    parentNode.rightNode = None
+            
+        elif parentNode is None:
+            # It means the node we want to delete is most likely a root node because it does not have a parent node
+            
+            if nodeTodelete.rightNode is None:
+                # set the left of the nodeToDelete as the new root node
+                rootNode = nodeTodelete.leftNode
+            elif nodeTodelete.leftNode is None :
+                # set the right of the nodeToDelete as the new root node
+                rootNode = nodeTodelete.rightNode 
+            else:
+                # if we run this block, it means that the nodeToDelete has left and right nodes or subTrees
+                pass
+                
+                # make the right node the new root node
+                rootNode = nodeTodelete.rightNode
+
+                # insert the left sub tree in a suitable position in the binary tree following the rules of inserting a new node in a binary search tree
+                self.insertNode(rootNode, nodeTodelete.leftNode)
+
+        
+        # dis-associate the nodeToBeDeleted from the tree
+        nodeTodelete.leftNode = None
+        nodeTodelete.rightNode = None 
+
+        return rootNode
+                
+
         
             
 
@@ -88,7 +204,7 @@ class BinarySearchTreeMethods:
 
 # ------- MANUALLY CREATE THE NODES AND INSERT THE VALUES AND LINK THEM  ------
 # first create the rootNode
-rootNode = BinaryTreeNode(150)
+rootNode = BinaryTreeNode(13)
 
 # create the node
 node7 = BinaryTreeNode(7)
@@ -114,20 +230,21 @@ node19.leftNode = node18
 # Create a BinarySearchTree Object so that you can use its methods to search the binaryTree Just created
 binarySearchTreeMethods = BinarySearchTreeMethods()
 
-# perform in_order_tree_traversal
-print("in order traversal ") 
-binarySearchTreeMethods.in_order_traversal(rootNode) # Note that the values are printed in ascending order
 
-# perform pre_order_tree_traversal
-print("\npre order traversal ")
-binarySearchTreeMethods.pre_order_traveral(rootNode)
+# # perform in_order_tree_traversal
+# print("in order traversal ") 
+# binarySearchTreeMethods.in_order_traversal(rootNode) # Note that the values are printed in ascending order
 
-# perform pre_order_tree_traversal
-print("\npost order traversal ")
-binarySearchTreeMethods.post_order_traversal(rootNode)
+# # perform pre_order_tree_traversal
+# print("\npre order traversal ")
+# binarySearchTreeMethods.pre_order_traveral(rootNode)
 
-# print the lowest value in the tree
-print("\nlowest value in tree is: ", binarySearchTreeMethods.print_lowest_value_in_tree(rootNode))
+# # perform pre_order_tree_traversal
+# print("\npost order traversal ")
+# binarySearchTreeMethods.post_order_traversal(rootNode)
+
+# # print the lowest value in the tree
+# print("\nlowest value in tree is: ", binarySearchTreeMethods.print_lowest_value_in_tree(rootNode))
 
 
 # Insert a node
@@ -135,15 +252,22 @@ node2 = BinaryTreeNode(2)
 node1 = BinaryTreeNode(1)
 node100 = BinaryTreeNode(100)
 
-print("\ninserting node ")
-binarySearchTreeMethods.insertNode(rootNode, node100)
-# perform in_order_tree_traversal
-print("in order traversal ") 
-binarySearchTreeMethods.in_order_traversal(rootNode) # Note that the values are printed in ascending order
+# print("\ninserting node ")
+# binarySearchTreeMethods.insertNode(rootNode, node100)
+# # perform in_order_tree_traversal
+# print("in order traversal ") 
+# binarySearchTreeMethods.in_order_traversal(rootNode) # Note that the values are printed in ascending order
 
-# print the lowest value in the tree
-print("\nlowest value in tree is: ", binarySearchTreeMethods.print_lowest_value_in_tree(rootNode))
-# print the lowest value in the tree
-print("\nHighest value in tree is: ", binarySearchTreeMethods.print_highest_value_in_tree(rootNode))
+# # print the lowest value in the tree
+# print("\nlowest value in tree is: ", binarySearchTreeMethods.print_lowest_value_in_tree(rootNode))
+# # print the lowest value in the tree
+# print("\nHighest value in tree is: ", binarySearchTreeMethods.print_highest_value_in_tree(rootNode))
+
+print("\ndeleting node ")
+binarySearchTreeMethods.in_order_traversal(rootNode)
+newRootNode = binarySearchTreeMethods.deleteNode(rootNode, node19)
+print("\n traversing node")
+binarySearchTreeMethods.in_order_traversal(newRootNode)
+
 
 # ------ AUTOMATICALLY CREATE A NEW NODE AND INSERT THE NODE IN THE TREE ------
