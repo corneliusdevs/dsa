@@ -48,6 +48,13 @@ class BinarySearchTreeMethods:
 
         return self.print_lowest_value_in_tree(node.leftNode)
     
+    def minValueNode(self, node:BinaryTreeNode):
+        current = node
+        while current.leftNode is not None:
+            current = current.leftNode
+        
+        return current
+    
     def print_highest_value_in_tree(self, node:BinaryTreeNode):
         """The Method assumes that the Binary Search tree is well sorted and Obeys the Laws of an actual Binary Search Tree. Make sure to pass the rootNode as the argument to the function when it is called"""
         if(node.rightNode is None):
@@ -193,6 +200,34 @@ class BinarySearchTreeMethods:
         nodeTodelete.rightNode = None 
 
         return rootNode
+    
+    def deleteNode2(self, node:BinaryTreeNode, data):
+        if not node:
+            return None
+        
+        if data < node.data:
+            node.leftNode = self.deleteNode2(node.leftNode, data)
+        elif data > node.data:
+            node.rightNode = self.deleteNode2(node.rightNode, data)
+        else:
+            # node with only one child or no child
+            if not node.leftNode:
+                temp = node.rightNode
+                node = None
+                return temp
+            elif not node.rightNode:
+                temp = node.leftNode
+                node = None
+                return temp
+            
+            # node with 2 children, get the in-order successor
+            node.data = self.minValueNode(node.rightNode).data # avoid using a recursive function in another recursive function so as not to exceed the maximum recursion depth especially when working with trees and graphs. Recursive solutions also tend to conssume a lot of space.
+            node.rightNode = self.deleteNode2(node.rightNode, node.data)
+
+
+
+
+        
                 
 
         
